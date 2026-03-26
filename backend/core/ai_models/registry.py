@@ -75,6 +75,12 @@ class PricingPresets:
         output_cost_per_million_tokens=3.00,
         cached_read_cost_per_million_tokens=0.10,
     )
+    
+    WAVESPEED_MINIMAX = ModelPricing(
+        input_cost_per_million_tokens=0.30,
+        output_cost_per_million_tokens=1.20,
+        cached_read_cost_per_million_tokens=0.03,
+    )
 
     HAIKU_3_5 = ModelPricing(
         input_cost_per_million_tokens=0.80,
@@ -160,6 +166,27 @@ class ModelFactory:
         )
     
     @staticmethod
+    def create_wavespeed_minimax() -> Model:
+        return Model(
+            id="kortix/wavespeed-minimax",
+            name="Wavespeed MiniMax M2.7",
+            litellm_model_id="wavespeed/minimax-m2.7",
+            provider=ModelProvider.WAVESPEED,
+            aliases=["wavespeed-minimax", "minimax-m2.7"],
+            context_window=200_000,
+            capabilities=[
+                ModelCapability.CHAT,
+                ModelCapability.FUNCTION_CALLING,
+                ModelCapability.THINKING,
+            ],
+            pricing=PricingPresets.WAVESPEED_MINIMAX,
+            tier_availability=["free", "paid"],
+            priority=200,
+            recommended=True,
+            enabled=True,
+        )
+
+    @staticmethod
     def create_minimax_m2(use_openrouter: bool = True) -> Model:
         if use_openrouter:
             litellm_id = "openrouter/minimax/minimax-m2.1"
@@ -191,6 +218,9 @@ class ModelFactory:
     
     @staticmethod
     def create_basic_model(main_llm: str, custom_model: Optional[str] = None) -> Model:
+        if main_llm == "wavespeed":
+            return ModelFactory.create_wavespeed_minimax()
+            
         # Default models per provider
         default_models = {
             "bedrock": BedrockConfig.get_haiku_arn(),
@@ -199,6 +229,7 @@ class ModelFactory:
             "openai": "openrouter/openai/gpt-4o-mini",
             "minimax": "openrouter/minimax/minimax-m2.1",
             "kimi": "openrouter/moonshotai/kimi-k2.5",
+            "wavespeed": "wavespeed/minimax-m2.7",
         }
 
         if main_llm == "kimi":

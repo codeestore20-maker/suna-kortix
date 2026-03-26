@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: suna-backend
+    env: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && export PYTHONPATH=$PYTHONPATH:. && uvicorn api:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENV_MODE
+        value: production
+  - type: web
+    name: suna-frontend
+    env: node
+    buildCommand: "cd apps/frontend && pnpm install && pnpm build"
+    startCommand: "cd apps/frontend && pnpm start --port $PORT"
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0

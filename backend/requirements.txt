@@ -1,0 +1,8 @@
+pip @ file:///build/pip-24.3.1-py3-none-any.whl
+wavespeed
+composio-core
+composio-openai
+daytona-sdk
+langfuse
+uvicorn
+fastapi

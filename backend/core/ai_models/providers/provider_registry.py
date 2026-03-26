@@ -2,6 +2,7 @@ from typing import Dict, Optional, Type
 from .base import ProviderConfig, ProviderCapability
 from .anthropic import AnthropicProvider, BedrockProvider
 from .minimax import MiniMaxProvider, OpenRouterProvider
+from .wavespeed import WavespeedProvider
 
 
 class ProviderRegistry:
@@ -17,6 +18,7 @@ class ProviderRegistry:
         self.register("minimax", MiniMaxProvider(use_openrouter=False))
         self.register("openrouter", OpenRouterProvider())
         self.register("minimax_openrouter", MiniMaxProvider(use_openrouter=True))
+        self.register("wavespeed", WavespeedProvider())
     
     def register(self, name: str, provider: ProviderConfig):
         self._providers[name] = provider
@@ -51,6 +53,9 @@ class ProviderRegistry:
         
         if model_lower.startswith("minimax/"):
             return self._providers.get("minimax")
+        
+        if model_lower.startswith("wavespeed/") or "minimax-m2.7" in model_lower:
+            return self._providers.get("wavespeed")
         
         return None
     
