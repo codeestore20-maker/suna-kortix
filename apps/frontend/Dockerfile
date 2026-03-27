@@ -29,8 +29,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install only the frontend workspace project (and its deps) using pnpm.
-RUN corepack enable pnpm && pnpm install --filter ./apps/frontend ${PNPM_LOCKFILE_MODE}
+# Install all workspace packages (including shared package with React code)
+RUN corepack enable pnpm && pnpm install ${PNPM_LOCKFILE_MODE}
 
 
 # ---- Builder Stage ----
