@@ -1,0 +1,11 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "numWorkers": 1,
+    "workerType": "standard",
+    "init": {
+      "name": "Install pnpm",
+      "command": "corepack enable && corepack prepare pnpm@latest --activate"
+    }
+  }
+}
