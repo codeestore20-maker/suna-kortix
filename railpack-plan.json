@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd apps/frontend && corepack enable && pnpm install && pnpm build",
+    "buildCommand": "npm install -g pnpm && cd apps/frontend && pnpm install && pnpm build",
     "runCommand": "cd apps/frontend && pnpm start --port $PORT"
   },
   "runtime": {
