@@ -1,0 +1,67 @@
+# syntax=docker.io/docker/dockerfile:1
+FROM python:3.11-slim AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    build-essential \
+    pkg-config \
+    python3-dev \
+    freetype-dev \
+    gcc \
+    linux-headers \
+    musl-dev \
+    pango \
+    cairo \
+    gdk-pixbuf \
+    libffi \
+    fontconfig \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy backend files
+COPY backend/requirements.txt backend/pyproject.toml backend/uv.lock ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend code
+COPY backend/ ./backend/
+
+# Copy frontend files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
+COPY apps ./apps
+COPY packages ./packages
+
+# Install frontend dependencies
+RUN pnpm install --filter ./apps/frontend --frozen-lockfile
+
+# Build frontend
+WORKDIR /app/apps/frontend
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_OUTPUT=standalone
+RUN pnpm run build
+
+# Go back to app directory
+WORKDIR /app
+
+# Environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV ENV_MODE=production
+
+# Expose ports
+EXPOSE 8000 3000
+
+# Start both services
+CMD ["sh", "-c", "cd backend && uvicorn api:app --host 0.0.0.0 --port 8000 & cd apps/frontend && node server.js"]
