@@ -2,10 +2,13 @@ import type { NextConfig } from 'next';
 
 // Dynamically determine backend URL based on Vercel environment
 const getBackendUrl = (): string => {
-  // If explicitly set via Vercel dashboard/env, use that (highest priority)
-  const explicitUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  if (explicitUrl && explicitUrl.trim() !== '') {
-    return explicitUrl;
+  // If explicitly set via env, use that (highest priority)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+    return process.env.NEXT_PUBLIC_BACKEND_URL;
   }
   
   // Vercel environment detection
@@ -14,7 +17,7 @@ const getBackendUrl = (): string => {
   
   // Production environment
   if (vercelEnv === 'production') {
-    return 'process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"';
+    return "http://localhost:8000";
   }
   
   // Preview deployments (non-main branches)
@@ -29,7 +32,7 @@ const getBackendUrl = (): string => {
   }
 
   // Main branch / staging (default)
-  return 'process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"';
+  return "http://localhost:8000";
 };
 
 const nextConfig = (): NextConfig => ({
