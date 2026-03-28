@@ -293,6 +293,19 @@ app = FastAPI(
 configure_openapi(app)
 
 @app.middleware("http")
+async def handle_options_preflight(request: Request, call_next):
+    if request.method == "OPTIONS":
+        origin = request.headers.get("origin", "")
+        response = Response(status_code=200)
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Max-Age"] = "86400"
+        return response
+    return await call_next(request)
+
+@app.middleware("http")
 async def log_requests_middleware(request: Request, call_next):
     structlog.contextvars.clear_contextvars()
 
@@ -366,7 +379,7 @@ app.add_middleware(
 )
 
 # Create a main API router
-api_router = APIRouter()
+api_router = APIRouter(redirect_slashes=False)
 
 # Include all API routers without individual prefixes
 # Core routers
