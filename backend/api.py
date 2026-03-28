@@ -348,13 +348,18 @@ if config.ENV_MODE == EnvMode.STAGING:
     allowed_origins.append("https://staging.kortix.com")
     allowed_origins.append("http://localhost:3000")
 
+# Add production/custom domains (like Railway or Vercel specific domains)
+if config.ENV_MODE == EnvMode.PRODUCTION:
+    allowed_origins.append("https://suna-frontend-production-d1da.up.railway.app")
+    allowed_origins.append("https://suna-frontend.onrender.com")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_origin_regex=allow_origin_regex,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "X-Project-Id", "X-MCP-URL", "X-MCP-Type", "X-MCP-Headers", "X-API-Key"],
+    allow_methods=["*"], # Allow all methods to fix preflight redirect issues
+    allow_headers=["*"], # Allow all headers to fix preflight issues
 )
 
 # Create a main API router
