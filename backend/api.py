@@ -84,10 +84,16 @@ async def lifespan(app: FastAPI):
     env_mode = config.ENV_MODE.value if config.ENV_MODE else "unknown"
     logger.debug(f"Starting up FastAPI application with instance ID: {instance_id} in {env_mode} mode")
     try:
-        await db.initialize()
+        try:
+            await db.initialize()
+        except Exception as e:
+            logger.error(f"Failed to initialize Supabase DB connection: {e}")
         
-        from core.services.db import init_db
-        await init_db()
+        try:
+            from core.services.db import init_db
+            await init_db()
+        except Exception as e:
+            logger.error(f"Failed to initialize direct DB (SQLAlchemy): {e}")
 
         try:
             from core.services.db import execute_one
@@ -97,14 +103,23 @@ async def lifespan(app: FastAPI):
             logger.warning(f"Failed to warm up database connection pool: {e}")
         
         # Pre-load tool classes and schemas to avoid first-request delay
-        from core.utils.tool_discovery import warm_up_tools_cache
-        warm_up_tools_cache()
+        try:
+            from core.utils.tool_discovery import warm_up_tools_cache
+            warm_up_tools_cache()
+        except Exception as e:
+            logger.warning(f"Failed to warm up tools cache: {e}")
         
         # Pre-load static Suna config for fast path in API requests
-        from core.cache.runtime_cache import load_static_suna_config
-        load_static_suna_config()
+        try:
+            from core.cache.runtime_cache import load_static_suna_config
+            load_static_suna_config()
+        except Exception as e:
+            logger.warning(f"Failed to load static Suna config: {e}")
         
-        sandbox_api.initialize(db)
+        try:
+            sandbox_api.initialize(db)
+        except Exception as e:
+            logger.error(f"Failed to initialize sandbox API: {e}")
         
         from core.services import redis
         try:
@@ -130,11 +145,14 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"Failed to cleanup orphaned agent runs on startup: {e}")
         
-        if config.ACTIVATE_MCPS_TRIG:
-            triggers_api.initialize(db)
-            credentials_api.initialize(db)
-            composio_api.initialize(db)
-        template_api.initialize(db)
+        try:
+            if config.ACTIVATE_MCPS_TRIG:
+                triggers_api.initialize(db)
+                credentials_api.initialize(db)
+                composio_api.initialize(db)
+            template_api.initialize(db)
+        except Exception as e:
+            logger.error(f"Failed to initialize MCP/template APIs: {e}")
         
         # Start CloudWatch worker metrics publisher (production only)
         if config.ENV_MODE == EnvMode.PRODUCTION:
